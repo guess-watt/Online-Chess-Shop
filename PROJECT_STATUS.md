@@ -1,6 +1,6 @@
 # ChessMart Project Status & Handover Report
 
-*Last Updated: Phase 4 Completion*
+*Last Updated: Phase 5 Completion*
 
 ---
 
@@ -10,7 +10,7 @@
 - **Tech Stack:**
   - **Backend:** Python 3.13, Django 6.1
   - **Database:** PostgreSQL (with SQLite development fallback via `.env`), SQL
-  - **Frontend:** HTML5, CSS3, Bootstrap 5.3, Bootstrap Icons, JavaScript (vanilla)
+  - **Frontend:** HTML5, CSS3, Bootstrap 5.3, Bootstrap Icons, Chart.js 4.4, JavaScript (vanilla)
   - **Tools:** Git, python-dotenv, psycopg (v3)
 - **Architecture:** Modular Django design (`products`, `inventory`, `sales`, `customers`, `dashboard`). Business logic encapsulated in service layers with strict transactional atomicity (`@transaction.atomic`, `select_for_update()`).
 
@@ -71,18 +71,39 @@
   - Customer registration and update workflows.
   - Templates created in `templates/customers/`: `customer_list.html`, `customer_detail.html`, `customer_form.html`.
 
+### Phase 5: Sales Dashboard and Reporting
+- **Analytics & Reporting Service (`dashboard/services.py`)**:
+  - `get_dashboard_kpis()`: Aggregates gross revenue, total refunds, net revenue, Cost of Goods Sold (COGS), net profit, profit margin percentage, order counts, total available on-hand stock, active product count, and low-stock count. Accurately accounts for returned inventory restocking and refunds.
+  - `get_channel_comparison()`: Analyzes sales across channels (Physical Store POS vs. Online Webstore), computing order counts, total revenue, and channel percentage share.
+  - `get_category_breakdown()`: Aggregates revenue and units sold grouped by Product Category.
+  - `get_monthly_sales_trends()`: Monthly revenue trends using SQL `TruncMonth` time-series aggregation.
+  - `get_best_selling_products(limit=5)`: Top chess equipment ranked by units sold, total revenue, and profit margin.
+- **Executive Dashboard UI (`dashboard/views.py`, `dashboard/urls.py`, `templates/dashboard/index.html`)**:
+  - Connected application root (`/`) to executive sales dashboard.
+  - 4 KPI metric cards (Net Revenue, Net Profit, Total Orders, Available Inventory with low stock warnings).
+  - Multi-channel comparison section (Physical Store vs. Online Channel comparison).
+  - Chart.js interactive visual charts:
+    1. Monthly Revenue Trend (Bar/Line chart).
+    2. Sales by Category (Doughnut chart).
+  - Top 5 Best-Selling Chess Products table with rank, SKU, category, units sold, revenue, and profit.
+  - Recent orders feed with status badges and links to detailed invoices.
+
 ---
 
 ## 3. Current Status
-- **Last Completed Phase:** Phase 4 (Customer Management).
+- **Last Completed Phase:** Phase 5 (Sales Dashboard and Reporting).
 - **Working Features:**
+  - Executive sales dashboard with real-time KPI metrics (Net Revenue, Net Profit, Orders, Inventory).
+  - Multi-channel analytics (Physical POS vs. Online Webstore revenue and share).
+  - Interactive charts for monthly sales trends and category distribution.
+  - Best-selling products ranking.
+  - Real-time low-stock alert monitoring with one-click restock access.
   - Product Catalog browsing, searching, and category filtering.
   - Product creation, editing, and soft deactivation.
   - Category creation and management.
   - Multi-store inventory tracking (Physical Store vs. Online Channel).
   - Transactional stock in and stock adjustment with movement audit logs.
   - Prevention of negative stock (atomic rollback on insufficient inventory).
-  - Real-time low-stock alert monitoring.
   - Physical store Point-of-Sale (POS) counter checkout with instant stock deduction.
   - Online channel order creation in PENDING state.
   - Order confirmation with stock verification and atomic deduction.
@@ -93,9 +114,8 @@
   - Customer profile with complete purchase history and CRM financial metrics (AOV, lifetime spend).
   - Customer registration and profile management.
 - **Pending Features:**
-  - **Phase 5:** Sales Dashboard and Reporting (Revenue, profit calculations, channel comparison charts, best-selling products).
-  - **Phase 6:** End-to-end testing and edge cases.
-  - **Phase 7:** Documentation and deployment.
+  - **Phase 6:** Testing, Edge Case Validation, and System Hardening.
+  - **Phase 7:** Documentation, deployment readiness, and optional Salesforce integration guidance.
 
 ---
 
@@ -121,13 +141,14 @@
 
 ## 5. Testing
 - **Test Suite:** Executed via `python manage.py test`.
-- **Results:** **43 tests passed** (0 failures, 0 errors) in 0.490s.
+- **Results:** **47 tests passed** (0 failures, 0 errors) in 0.532s.
   - Model and schema constraints: 11 tests.
   - Product forms, SKU uppercase normalization, CRUD views: 8 tests.
   - Inventory transactional services, stock rollback on insufficient inventory, availability check, low-stock query, views: 8 tests.
-  - Sales service operations (POS sale deduction, online order pending, status transitions, cancellation restock, return sellable vs damaged restock) and views: 8 tests.
-  - Customer models (str, email uniqueness, order aggregation, lifetime spend calculation), CustomerForm validation, and Customer views (list, search, type filter, detail with purchase ledger, create, update): 8 tests.
-- **Untested Scenarios:** Analytics aggregation queries and dashboard chart rendering (Phase 5).
+  - Sales service operations and POS/Online order views: 8 tests.
+  - Customer models, forms, directory, and purchase history profile views: 8 tests.
+  - Dashboard analytics services (KPIs with returns, channel comparison, category breakdown, best-selling ranking) and dashboard view rendering: 4 tests.
+- **System Check:** `python manage.py check` reports 0 issues.
 
 ---
 
@@ -139,28 +160,23 @@
 
 ## 7. Git Version Control
 - **Current Branch:** `master`
-- **Previous Commit:** `774227c` ("Phase 3: Complete Sales and Order Management with POS, Online orders, status workflows, and return restocking")
-- **Pending Commit:** Phase 4 files and updated `PROJECT_STATUS.md` ready to be committed.
+- **Previous Commit:** `5a30f02` ("Phase 4: Complete Customer Management with CRM profiling, order history connection, and buyer segmentation")
+- **Pending Commit:** Phase 5 files and updated `PROJECT_STATUS.md` ready to be committed.
 
 ---
 
-## 8. Next Steps (Phase 5)
-- **Task:** Implement **Phase 5: Sales Dashboard and Reporting**.
+## 8. Next Steps (Phase 6)
+- **Task:** Implement **Phase 6: Testing, Edge Case Validation, and System Hardening**.
 - **Key Deliverables:**
-  - Business Performance Metrics cards:
-    - Total Revenue
-    - Total Profit (Selling price minus cost price, accounting for refunds)
-    - Total Orders (with breakdown by channel)
-    - Total Products Cataloged & Available Inventory
-    - Low-stock Alert count
-  - Visual Charts (HTML5/Chart.js or SVG/Bootstrap cards):
-    - Monthly Revenue
-    - Sales by Category (Chess Boards, Clocks, Pieces, Books, Accessories)
-    - Sales by Channel (Physical Store POS vs. Online Webstore)
-  - Best-Selling Products table:
-    - Top chess products by volume and revenue generated
+  - End-to-end integration scenario testing:
+    - Scenario A: Physical store purchase with inventory synchronization.
+    - Scenario B: Online order creation, confirmation, and stock deduction.
+    - Scenario C: Real-time inventory sync across channels.
+    - Scenario D: Low-stock warning detection and restock workflow.
+    - Scenario E: Return restocking vs damage write-off financial integrity.
+  - Input validation and edge-case hardening (e.g. boundary checks, concurrent race conditions, zero items).
+  - Verification across all business scenarios in the specification.
 - **Files to Inspect First:**
-  - `dashboard/views.py`
-  - `sales/models.py`
-  - `products/models.py`
-  - `inventory/models.py`
+  - `tests/` or app `tests.py` files
+  - `sales/services.py`
+  - `inventory/services.py`
