@@ -1,6 +1,6 @@
 # ChessMart Project Status & Handover Report
 
-*Last Updated: Phase 3 Completion*
+*Last Updated: Phase 4 Completion*
 
 ---
 
@@ -58,10 +58,23 @@
   - `order_return_create`: Formal return processing with line-by-line quantity selection, condition inspection, and restock options.
   - Templates created in `templates/sales/`: `order_list.html`, `order_detail.html`, `pos_checkout.html`, `online_order_form.html`, `order_return_form.html`.
 
+### Phase 4: Customer Management (CRM)
+- **Buyer Account Clarification**:
+  - Defined clear handling for:
+    - *Individual / Walk-in*: Guest register checkout account (`walkin@chessmart.local`) for fast POS checkout, plus registered individual profiles.
+    - *Chess Academies*: Institutional buyers purchasing training equipment in bulk.
+    - *Chess Clubs*: Community organizers and rated tournament hosts purchasing competition supplies.
+- **Customer CRM Architecture (`customers/forms.py`, `customers/views.py`)**:
+  - Form validation: Enforces unique email (case-insensitive) and clean data entry.
+  - Customer directory view: Search by name, email, phone, or address; filter by buyer category (`Individual`, `Academy`, `Club`); displays order count and lifetime spend.
+  - Customer profile & purchase ledger: Connected directly to `Order` models; displays live customer lifetime spend, non-cancelled order counts, and Average Order Value (AOV); complete transaction history with links to order receipts.
+  - Customer registration and update workflows.
+  - Templates created in `templates/customers/`: `customer_list.html`, `customer_detail.html`, `customer_form.html`.
+
 ---
 
 ## 3. Current Status
-- **Last Completed Phase:** Phase 3 (Sales and Order Management).
+- **Last Completed Phase:** Phase 4 (Customer Management).
 - **Working Features:**
   - Product Catalog browsing, searching, and category filtering.
   - Product creation, editing, and soft deactivation.
@@ -76,9 +89,11 @@
   - Order status progression state machine.
   - Order cancellation with automatic inventory restoration.
   - Customer return filing with sellable vs. damaged item inspection and conditional restocking.
+  - Customer directory with search, segmentation filtering, and lifetime spend display.
+  - Customer profile with complete purchase history and CRM financial metrics (AOV, lifetime spend).
+  - Customer registration and profile management.
 - **Pending Features:**
-  - **Phase 4:** Customer Management (CRM customer profiles, order history aggregation, customer classification).
-  - **Phase 5:** Sales Dashboard and Reporting (Revenue, profit calculations, channel comparison charts).
+  - **Phase 5:** Sales Dashboard and Reporting (Revenue, profit calculations, channel comparison charts, best-selling products).
   - **Phase 6:** End-to-end testing and edge cases.
   - **Phase 7:** Documentation and deployment.
 
@@ -106,12 +121,13 @@
 
 ## 5. Testing
 - **Test Suite:** Executed via `python manage.py test`.
-- **Results:** **35 tests passed** (0 failures, 0 errors) in 0.334s.
+- **Results:** **43 tests passed** (0 failures, 0 errors) in 0.490s.
   - Model and schema constraints: 11 tests.
   - Product forms, SKU uppercase normalization, CRUD views: 8 tests.
   - Inventory transactional services, stock rollback on insufficient inventory, availability check, low-stock query, views: 8 tests.
-  - Sales service operations (POS sale deduction, online order pending, status transitions, cancellation restock, return sellable vs damaged restock) and views (order list, detail, pos checkout, online order, transition, returns): 8 tests.
-- **Untested Scenarios:** Customer CRM detail views (Phase 4) and Analytics aggregation queries (Phase 5).
+  - Sales service operations (POS sale deduction, online order pending, status transitions, cancellation restock, return sellable vs damaged restock) and views: 8 tests.
+  - Customer models (str, email uniqueness, order aggregation, lifetime spend calculation), CustomerForm validation, and Customer views (list, search, type filter, detail with purchase ledger, create, update): 8 tests.
+- **Untested Scenarios:** Analytics aggregation queries and dashboard chart rendering (Phase 5).
 
 ---
 
@@ -123,20 +139,28 @@
 
 ## 7. Git Version Control
 - **Current Branch:** `master`
-- **Previous Commit:** `7e0a988` ("Phase 2: Complete Product and Inventory Management with transactional services and seed data")
-- **Pending Commit:** Phase 3 files and updated `PROJECT_STATUS.md` ready to be committed.
+- **Previous Commit:** `774227c` ("Phase 3: Complete Sales and Order Management with POS, Online orders, status workflows, and return restocking")
+- **Pending Commit:** Phase 4 files and updated `PROJECT_STATUS.md` ready to be committed.
 
 ---
 
-## 8. Next Steps (Phase 4)
-- **Task:** Implement **Phase 4: Customer Management**.
+## 8. Next Steps (Phase 5)
+- **Task:** Implement **Phase 5: Sales Dashboard and Reporting**.
 - **Key Deliverables:**
-  - Customer directory view (search by name, email, phone, filter by type: Individual, Chess Academy, Chess Club).
-  - Customer profile page with full purchase history, total lifetime spend, and non-cancelled order counts.
-  - Customer registration and edit forms with email uniqueness and input validation.
-  - Customer segment tags (Individual, Academy, Club).
+  - Business Performance Metrics cards:
+    - Total Revenue
+    - Total Profit (Selling price minus cost price, accounting for refunds)
+    - Total Orders (with breakdown by channel)
+    - Total Products Cataloged & Available Inventory
+    - Low-stock Alert count
+  - Visual Charts (HTML5/Chart.js or SVG/Bootstrap cards):
+    - Monthly Revenue
+    - Sales by Category (Chess Boards, Clocks, Pieces, Books, Accessories)
+    - Sales by Channel (Physical Store POS vs. Online Webstore)
+  - Best-Selling Products table:
+    - Top chess products by volume and revenue generated
 - **Files to Inspect First:**
-  - `customers/models.py`
-  - `customers/views.py`
-  - `customers/forms.py`
-  - `customers/urls.py`
+  - `dashboard/views.py`
+  - `sales/models.py`
+  - `products/models.py`
+  - `inventory/models.py`
