@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Low Stock Alerts - ChessMart{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 mb-0 fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Low-Stock Alert Center</h2>
+        <p class="text-muted mb-0">Products whose combined on-hand inventory has reached or dropped below their minimum safety threshold.</p>
+    </div>
+    <div>
+        <a href="{% url 'inventory:list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Inventory
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 border-top border-danger border-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">SKU</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th class="text-center">Current Total Stock</th>
+                        <th class="text-center">Minimum Threshold</th>
+                        <th class="text-center">Deficit</th>
+                        <th class="text-end pe-3">Immediate Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in low_stock_products %}
+                    <tr class="table-danger-subtle">
+                        <td class="ps-3 font-monospace fw-semibold text-primary">
+                            <a href="{% url 'products:detail' product.pk %}" class="text-decoration-none">
+                                {{ product.sku }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{% url 'products:detail' product.pk %}" class="fw-bold text-dark text-decoration-none">
+                                {{ product.name }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ product.category.name }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-danger fs-6 px-3 py-1">
+                                {{ product.total_stock }} units
+                            </span>
+                        </td>
+                        <td class="text-center fw-semibold text-muted">
+                            &le; {{ product.low_stock_threshold }} units
+                        </td>
+                        <td class="text-center text-danger fw-bold">
+                            {% if product.total_stock == 0 %}
+                                Out of Stock (0 remaining)
+                            {% else %}
+                                Critically Low
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-3">
+                            <a href="{% url 'inventory:adjust' %}?product={{ product.pk }}" class="btn btn-sm btn-success">
+                                <i class="bi bi-box-arrow-in-down me-1"></i> Restock Now
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-success">
+                            <i class="bi bi-check-circle-fill display-5 d-block mb-2 text-success"></i>
+                            <h5 class="fw-bold mb-1">Stock Levels Healthy!</h5>
+                            <p class="text-muted mb-0">No products are currently at or below their safety threshold.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

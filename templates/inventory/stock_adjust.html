@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Adjustment - ChessMart{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="mb-3">
+            <a href="{% url 'inventory:list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to Inventory
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h4 class="card-title mb-0 fw-bold"><i class="bi bi-box-arrow-in-down me-2 text-success"></i>Stock Adjustment &amp; Stock In</h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-info border-0 mb-4 small">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    All stock additions and reductions are atomically committed to the database and logged in the immutable inventory movement audit trail.
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Product <span class="text-danger">*</span></label>
+                        {{ form.product }}
+                        {% if form.product.errors %}
+                            <div class="text-danger small mt-1">{{ form.product.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Store / Channel <span class="text-danger">*</span></label>
+                        {{ form.store }}
+                        {% if form.store.errors %}
+                            <div class="text-danger small mt-1">{{ form.store.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Adjustment Action <span class="text-danger">*</span></label>
+                            {{ form.action }}
+                            {% if form.action.errors %}
+                                <div class="text-danger small mt-1">{{ form.action.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Quantity (Units) <span class="text-danger">*</span></label>
+                            {{ form.quantity }}
+                            {% if form.quantity.errors %}
+                                <div class="text-danger small mt-1">{{ form.quantity.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Reason / Reference Note</label>
+                        {{ form.reason }}
+                        {% if form.reason.errors %}
+                            <div class="text-danger small mt-1">{{ form.reason.errors.0 }}</div>
+                        {% endif %}
+                        <small class="text-muted">e.g. PO #1084 from DGT distributor, Damaged clock screen, or Annual inventory count discrepancy</small>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{% url 'inventory:list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="bi bi-check-lg me-1"></i> Apply Stock Adjustment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
