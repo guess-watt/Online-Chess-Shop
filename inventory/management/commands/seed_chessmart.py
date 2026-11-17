@@ -139,4 +139,52 @@ class Command(BaseCommand):
                     reason="Initial Seeding Stock - Online Channel"
                 )
 
-        self.stdout.write(self.style.SUCCESS("All products and inventory seeded successfully!"))
+        # 4. Customers & Sample Orders
+        from customers.models import Customer
+        from sales import services as sales_services
+        from sales.models import Order
+
+        c1, _ = Customer.objects.get_or_create(
+            email="walkin@chessmart.local",
+            defaults={'name': 'Walk-in Store Customer', 'customer_type': Customer.INDIVIDUAL, 'address': 'Counter'}
+        )
+        c2, _ = Customer.objects.get_or_create(
+            email="contact@metropolitanyouthchess.org",
+            defaults={'name': 'Metropolitan Youth Chess Club', 'customer_type': Customer.CLUB, 'phone': '555-0199', 'address': '45 Kingsway Blvd'}
+        )
+        c3, _ = Customer.objects.get_or_create(
+            email="director@kasparovschool.edu",
+            defaults={'name': 'Kasparov Chess Academy', 'customer_type': Customer.ACADEMY, 'phone': '555-0144', 'address': '12 Academy Court'}
+        )
+
+        if Order.objects.count() == 0:
+            clock = Product.objects.get(sku="CLK-DGT-2010")
+            board = Product.objects.get(sku="BRD-SIL-REG")
+            pieces = Product.objects.get(sku="PCS-REG-PLAS")
+
+            # Sample 1: Physical POS Sale
+            sales_services.create_order(
+                customer=c1,
+                store=physical_store,
+                items_data=[
+                    {'product': clock, 'quantity': 1},
+                    {'product': board, 'quantity': 2},
+                ],
+                notes="Walk-in cash counter sale",
+                auto_confirm=True
+            )
+
+            # Sample 2: Online Club Order
+            o2 = sales_services.create_order(
+                customer=c2,
+                store=online_store,
+                items_data=[
+                    {'product': board, 'quantity': 5},
+                    {'product': pieces, 'quantity': 5},
+                ],
+                notes="Club tournament batch shipment",
+                auto_confirm=False
+            )
+            sales_services.confirm_order(o2)
+
+        self.stdout.write(self.style.SUCCESS("All products, inventory, customers, and orders seeded successfully!"))

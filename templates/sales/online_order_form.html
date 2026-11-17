@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}New Online Order - ChessMart{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 mb-0 fw-bold"><i class="bi bi-globe me-2 text-primary"></i>Create Online Customer Order</h2>
+        <p class="text-muted mb-0">Record an incoming customer order for <span class="badge bg-info text-dark">{{ store.name }}</span>.</p>
+    </div>
+    <a href="{% url 'sales:list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to Orders
+    </a>
+</div>
+
+<form method="post" id="onlineOrderForm">
+    {% csrf_token %}
+    <div class="row g-4">
+        <!-- Left: Product Selection -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold"><i class="bi bi-box-seam me-2 text-primary"></i>Select Chess Products</h5>
+                    <input type="text" id="prodSearch" class="form-control form-control-sm w-50" placeholder="Filter products...">
+                </div>
+                <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="prodTable">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th class="ps-3">Product</th>
+                                    <th>Price</th>
+                                    <th class="text-center">Online Stock</th>
+                                    <th class="text-end pe-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in products_with_stock %}
+                                <tr class="prod-row" data-name="{{ item.product.name|lower }}" data-sku="{{ item.product.sku|lower }}">
+                                    <td class="ps-3">
+                                        <div class="fw-bold text-dark">{{ item.product.name }}</div>
+                                        <small class="font-monospace text-muted">{{ item.product.sku }} | {{ item.product.category.name }}</small>
+                                    </td>
+                                    <td class="fw-bold font-monospace">${{ item.product.selling_price|floatformat:2 }}</td>
+                                    <td class="text-center">
+                                        {% if item.current_stock > 0 %}
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle">{{ item.current_stock }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">0</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        {% if item.current_stock > 0 %}
+                                            <button type="button" class="btn btn-sm btn-outline-primary add-item-btn"
+                                                    data-id="{{ item.product.id }}"
+                                                    data-name="{{ item.product.name }}"
+                                                    data-sku="{{ item.product.sku }}"
+                                                    data-price="{{ item.product.selling_price }}"
+                                                    data-max="{{ item.current_stock }}">
+                                                <i class="bi bi-cart-plus me-1"></i> Add
+                                            </button>
+                                        {% else %}
+                                            <button type="button" class="btn btn-sm btn-secondary" disabled>Out of Stock</button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No products available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Customer & Order Submission -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="card-title mb-0 fw-bold"><i class="bi bi-person me-2 text-primary"></i>Customer &amp; Delivery</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Customer <span class="text-danger">*</span></label>
+                        {{ form.customer }}
+                    </div>
+                    <div>
+                        <label class="form-label fw-bold">Delivery / Special Instructions</label>
+                        {{ form.notes }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cart Table -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold"><i class="bi bi-cart3 me-2 text-primary"></i>Order Items</h5>
+                    <span class="badge bg-secondary" id="cartCountBadge">0 items</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 260px; overflow-y: auto;">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Item</th>
+                                    <th style="width: 80px;" class="text-center">Qty</th>
+                                    <th class="text-end">Subtotal</th>
+                                    <th style="width: 40px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cartTableBody">
+                                <tr id="emptyRow">
+                                    <td colspan="4" class="text-center py-4 text-muted small">
+                                        No items added yet. Click "+ Add" on the left.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white p-3 border-top">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold fs-5">Estimated Total:</span>
+                        <span class="fw-bold fs-4 text-primary font-monospace" id="grandTotal">$0.00</span>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100" id="submitOrderBtn" disabled>
+                        <i class="bi bi-check2-circle me-1"></i> Place Online Order (Pending)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cart = {};
+    const prodSearch = document.getElementById('prodSearch');
+    const prodRows = document.querySelectorAll('.prod-row');
+    const cartTableBody = document.getElementById('cartTableBody');
+    const emptyRow = document.getElementById('emptyRow');
+    const cartCountBadge = document.getElementById('cartCountBadge');
+    const grandTotal = document.getElementById('grandTotal');
+    const submitOrderBtn = document.getElementById('submitOrderBtn');
+
+    prodSearch.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        prodRows.forEach(row => {
+            const name = row.getAttribute('data-name');
+            const sku = row.getAttribute('data-sku');
+            if (name.includes(query) || sku.includes(query)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    document.querySelectorAll('.add-item-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const name = this.getAttribute('data-name');
+            const sku = this.getAttribute('data-sku');
+            const price = parseFloat(this.getAttribute('data-price'));
+            const max = parseInt(this.getAttribute('data-max'));
+
+            if (!cart[id]) {
+                cart[id] = { id, name, sku, price, qty: 1, max };
+            } else {
+                if (cart[id].qty < max) {
+                    cart[id].qty += 1;
+                } else {
+                    alert(`Maximum online stock of ${max} reached.`);
+                }
+            }
+            renderCart();
+        });
+    });
+
+    function renderCart() {
+        cartTableBody.innerHTML = '';
+        const ids = Object.keys(cart);
+        let total = 0;
+        let count = 0;
+
+        if (ids.length === 0) {
+            cartTableBody.appendChild(emptyRow);
+            submitOrderBtn.disabled = true;
+        } else {
+            submitOrderBtn.disabled = false;
+            ids.forEach(id => {
+                const item = cart[id];
+                const sub = item.price * item.qty;
+                total += sub;
+                count += item.qty;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="ps-3">
+                        <div class="fw-bold small text-truncate" style="max-width: 160px;">${item.name}</div>
+                        <input type="hidden" name="product_id[]" value="${item.id}">
+                    </td>
+                    <td>
+                        <input type="number" name="quantity[]" value="${item.qty}" min="1" max="${item.max}"
+                               class="form-control form-control-sm text-center cart-qty-input" data-id="${item.id}">
+                    </td>
+                    <td class="text-end font-monospace small fw-bold">$${sub.toFixed(2)}</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-link text-danger p-0 remove-btn" data-id="${item.id}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                cartTableBody.appendChild(tr);
+            });
+        }
+
+        cartCountBadge.textContent = `${count} item${count === 1 ? '' : 's'}`;
+        grandTotal.textContent = `$${total.toFixed(2)}`;
+
+        document.querySelectorAll('.cart-qty-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const id = this.getAttribute('data-id');
+                let val = parseInt(this.value);
+                if (isNaN(val) || val < 1) val = 1;
+                if (val > cart[id].max) val = cart[id].max;
+                cart[id].qty = val;
+                renderCart();
+            });
+        });
+
+        document.querySelectorAll('.remove-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                delete cart[this.getAttribute('data-id')];
+                renderCart();
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

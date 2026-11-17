@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}File Return for {{ order.order_number }} - ChessMart{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="mb-3">
+            <a href="{% url 'sales:detail' order.pk %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to Order
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0 border-top border-warning border-4">
+            <div class="card-header bg-white py-3">
+                <h4 class="card-title mb-0 fw-bold"><i class="bi bi-arrow-return-left me-2 text-warning"></i>Process Customer Return</h4>
+                <small class="text-muted">Order: <strong>{{ order.order_number }}</strong> (Customer: {{ order.customer.name }})</small>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <h5 class="fw-bold mb-3">1. Select Items to Return</h5>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th class="text-center">Purchased</th>
+                                    <th class="text-center" style="width: 140px;">Return Quantity</th>
+                                    <th style="width: 180px;">Inspection Condition</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ item.product.name }}</div>
+                                        <small class="font-monospace text-muted">${{ item.unit_price|floatformat:2 }} each</small>
+                                    </td>
+                                    <td class="text-center fw-bold">{{ item.quantity }}</td>
+                                    <td>
+                                        <input type="number" name="return_qty_{{ item.id }}" value="0" min="0" max="{{ item.quantity }}"
+                                               class="form-control text-center font-monospace">
+                                    </td>
+                                    <td>
+                                        <select name="condition_{{ item.id }}" class="form-select form-select-sm">
+                                            <option value="SELLABLE" selected>Sellable / Like New</option>
+                                            <option value="DAMAGED">Damaged / Unsellable</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h5 class="fw-bold mb-3">2. Restock Decision &amp; Reason</h5>
+                    <div class="card bg-light border-0 p-3 mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.restock_inventory }}
+                            <label class="form-check-label fw-bold" for="{{ form.restock_inventory.id_for_label }}">
+                                Restock Accepted Items into {{ order.store.name }} Inventory
+                            </label>
+                        </div>
+                        <small class="text-muted ms-4">
+                            If enabled, items marked as "Sellable" will be automatically credited back to on-hand inventory and logged in movement history.
+                        </small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Return Reason / Justification <span class="text-danger">*</span></label>
+                        {{ form.reason }}
+                        {% if form.reason.errors %}
+                            <div class="text-danger small mt-1">{{ form.reason.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{% url 'sales:detail' order.pk %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-warning px-4 fw-semibold" onclick="return confirm('Process this return and issue refund calculation?');">
+                            <i class="bi bi-check2-circle me-1"></i> Process Return
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

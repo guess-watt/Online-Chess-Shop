@@ -1,6 +1,6 @@
 # ChessMart Project Status & Handover Report
 
-*Last Updated: Phase 2 Completion*
+*Last Updated: Phase 3 Completion*
 
 ---
 
@@ -10,7 +10,7 @@
 - **Tech Stack:**
   - **Backend:** Python 3.13, Django 6.1
   - **Database:** PostgreSQL (with SQLite development fallback via `.env`), SQL
-  - **Frontend:** HTML5, CSS3, Bootstrap 5.3, Bootstrap Icons
+  - **Frontend:** HTML5, CSS3, Bootstrap 5.3, Bootstrap Icons, JavaScript (vanilla)
   - **Tools:** Git, python-dotenv, psycopg (v3)
 - **Architecture:** Modular Django design (`products`, `inventory`, `sales`, `customers`, `dashboard`). Business logic encapsulated in service layers with strict transactional atomicity (`@transaction.atomic`, `select_for_update()`).
 
@@ -43,10 +43,25 @@
   - Templates created in `templates/inventory/`: `inventory_list.html`, `stock_adjust.html`, `movement_history.html`, `low_stock.html`.
   - Database seeding command `python manage.py seed_chessmart` populating physical and online stores, 5 product categories, and 10 realistic chess products with initial stock and movement records.
 
+### Phase 3: Sales and Order Management
+- **Sales and Order Service Layer (`sales/services.py`)**:
+  - `create_order(...)`: Atomically creates orders with multiple line items, calculates totals, checks stock availability, freezes historical selling & cost prices, and supports instant POS confirmation (`auto_confirm=True`).
+  - `confirm_order(...)`: Validates available stock, transitions status from `PENDING` to `CONFIRMED`, and atomically deducts store inventory.
+  - `transition_order_status(...)`: Enforces valid status transitions (`PENDING -> CONFIRMED -> PROCESSING -> SHIPPED -> DELIVERED` or `CANCELLED`).
+  - `cancel_order(...)`: Atomically restores previously deducted stock if the order was confirmed/in-progress and records a `RETURN` inventory movement.
+  - `process_order_return(...)`: Records return items, calculates refund, inspects condition (`SELLABLE` vs `DAMAGED`), and restocks inventory **only** when items are verified sellable.
+- **Sales Forms & UI (`sales/forms.py`, `sales/views.py`)**:
+  - `pos_checkout`: Interactive counter checkout terminal for the physical store with dynamic product catalog search, live cart calculation, automatic walk-in customer fallback, and immediate stock deduction.
+  - `online_order_create`: Webstore order placement interface generating pending orders with warehouse stock checks.
+  - `order_list`: Multi-channel order list with status badges, channel filters, search, and totals.
+  - `order_detail`: Complete invoice and tracking view with line-item breakdown, gross profit calculations, status progression actions, and returns history.
+  - `order_return_create`: Formal return processing with line-by-line quantity selection, condition inspection, and restock options.
+  - Templates created in `templates/sales/`: `order_list.html`, `order_detail.html`, `pos_checkout.html`, `online_order_form.html`, `order_return_form.html`.
+
 ---
 
 ## 3. Current Status
-- **Last Completed Phase:** Phase 2 (Product and Inventory Management).
+- **Last Completed Phase:** Phase 3 (Sales and Order Management).
 - **Working Features:**
   - Product Catalog browsing, searching, and category filtering.
   - Product creation, editing, and soft deactivation.
@@ -55,8 +70,13 @@
   - Transactional stock in and stock adjustment with movement audit logs.
   - Prevention of negative stock (atomic rollback on insufficient inventory).
   - Real-time low-stock alert monitoring.
+  - Physical store Point-of-Sale (POS) counter checkout with instant stock deduction.
+  - Online channel order creation in PENDING state.
+  - Order confirmation with stock verification and atomic deduction.
+  - Order status progression state machine.
+  - Order cancellation with automatic inventory restoration.
+  - Customer return filing with sellable vs. damaged item inspection and conditional restocking.
 - **Pending Features:**
-  - **Phase 3:** Sales and Order Management (POS sale, online orders, order item calculation, inventory reservation/deduction on confirmation, cancellation stock restore, return restock workflows).
   - **Phase 4:** Customer Management (CRM customer profiles, order history aggregation, customer classification).
   - **Phase 5:** Sales Dashboard and Reporting (Revenue, profit calculations, channel comparison charts).
   - **Phase 6:** End-to-end testing and edge cases.
@@ -80,16 +100,18 @@
   - `Customer` 1:N `Order`
   - `Order` 1:N `OrderItem`
   - `Order` 1:N `OrderReturn`
+  - `OrderReturn` 1:N `ReturnItem`
 
 ---
 
 ## 5. Testing
 - **Test Suite:** Executed via `python manage.py test`.
-- **Results:** **27 tests passed** (0 failures, 0 errors) in 0.209s.
+- **Results:** **35 tests passed** (0 failures, 0 errors) in 0.334s.
   - Model and schema constraints: 11 tests.
   - Product forms, SKU uppercase normalization, CRUD views: 8 tests.
   - Inventory transactional services, stock rollback on insufficient inventory, availability check, low-stock query, views: 8 tests.
-- **Untested Scenarios:** Order creation, status transitions, and returns (reserved for Phase 3).
+  - Sales service operations (POS sale deduction, online order pending, status transitions, cancellation restock, return sellable vs damaged restock) and views (order list, detail, pos checkout, online order, transition, returns): 8 tests.
+- **Untested Scenarios:** Customer CRM detail views (Phase 4) and Analytics aggregation queries (Phase 5).
 
 ---
 
@@ -101,20 +123,20 @@
 
 ## 7. Git Version Control
 - **Current Branch:** `master`
-- **Previous Commit:** `9073cd9` ("Phase 1: Project setup, database architecture, and initial models")
-- **Pending Commit:** Phase 2 files and `PROJECT_STATUS.md` staged and committed.
+- **Previous Commit:** `7e0a988` ("Phase 2: Complete Product and Inventory Management with transactional services and seed data")
+- **Pending Commit:** Phase 3 files and updated `PROJECT_STATUS.md` ready to be committed.
 
 ---
 
-## 8. Next Steps (Phase 3)
-- **Task:** Implement **Phase 3: Sales and Order Management**.
+## 8. Next Steps (Phase 4)
+- **Task:** Implement **Phase 4: Customer Management**.
 - **Key Deliverables:**
-  - Physical Store POS checkout view (fast in-store purchase).
-  - Online Order creation and tracking.
-  - Service functions for atomic order confirmation (stock deduction), cancellation (stock restock), and return processing.
-  - Order status transition state machine enforcement.
+  - Customer directory view (search by name, email, phone, filter by type: Individual, Chess Academy, Chess Club).
+  - Customer profile page with full purchase history, total lifetime spend, and non-cancelled order counts.
+  - Customer registration and edit forms with email uniqueness and input validation.
+  - Customer segment tags (Individual, Academy, Club).
 - **Files to Inspect First:**
-  - `sales/models.py`
-  - `inventory/services.py`
-  - `sales/views.py`
-  - `sales/forms.py`
+  - `customers/models.py`
+  - `customers/views.py`
+  - `customers/forms.py`
+  - `customers/urls.py`
