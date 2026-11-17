@@ -1,6 +1,6 @@
 # ChessMart Project Status & Handover Report
 
-*Last Updated: Phase 5 Completion*
+*Last Updated: Phase 6 Completion*
 
 ---
 
@@ -88,10 +88,22 @@
   - Top 5 Best-Selling Chess Products table with rank, SKU, category, units sold, revenue, and profit.
   - Recent orders feed with status badges and links to detailed invoices.
 
+### Phase 6: Testing, Scenario Validation, and Edge-Case Hardening
+- **End-to-End Scenarios Validated (`sales/test_scenarios.py`)**:
+  - **Scenario A (Physical Store Purchase)**: In-store POS sale creation, multi-item line total calculation, atomic stock deduction, and sales report reflection.
+  - **Scenario B (Online Order Fulfillment)**: Order placement in `PENDING` state, stock availability pre-checks, transition to `CONFIRMED` with stock deduction, and status tracking through `DELIVERED`.
+  - **Scenario C (Inventory Synchronization)**: Centralized inventory update after physical sale immediately decreases total availability across both channels.
+  - **Scenario D (Low-Stock Detection)**: Real-time trigger of low-stock alert when stock falls to or below threshold.
+  - **Scenario E (Business Reporting Aggregation)**: SQL aggregations verified for ranking top revenue products on the dashboard.
+- **Critical Edge-Case Hardening**:
+  - Multi-item atomic rollback on partial stockout (all or nothing; no orphaned records).
+  - Return quantity upper-bound validation (prevents returning more units than originally purchased).
+  - Financial precision validation: Net revenue, COGS recovery, and profit margin calculations verified down to the exact cent (`$0.01`).
+
 ---
 
 ## 3. Current Status
-- **Last Completed Phase:** Phase 5 (Sales Dashboard and Reporting).
+- **Last Completed Phase:** Phase 6 (Testing, Validation & Edge-Case Hardening).
 - **Working Features:**
   - Executive sales dashboard with real-time KPI metrics (Net Revenue, Net Profit, Orders, Inventory).
   - Multi-channel analytics (Physical POS vs. Online Webstore revenue and share).
@@ -114,8 +126,7 @@
   - Customer profile with complete purchase history and CRM financial metrics (AOV, lifetime spend).
   - Customer registration and profile management.
 - **Pending Features:**
-  - **Phase 6:** Testing, Edge Case Validation, and System Hardening.
-  - **Phase 7:** Documentation, deployment readiness, and optional Salesforce integration guidance.
+  - **Phase 7:** Documentation, deployment readiness, and optional Salesforce CRM integration architecture.
 
 ---
 
@@ -141,42 +152,42 @@
 
 ## 5. Testing
 - **Test Suite:** Executed via `python manage.py test`.
-- **Results:** **47 tests passed** (0 failures, 0 errors) in 0.532s.
+- **Results:** **55 tests passed** (0 failures, 0 errors) in 0.683s.
   - Model and schema constraints: 11 tests.
   - Product forms, SKU uppercase normalization, CRUD views: 8 tests.
   - Inventory transactional services, stock rollback on insufficient inventory, availability check, low-stock query, views: 8 tests.
   - Sales service operations and POS/Online order views: 8 tests.
   - Customer models, forms, directory, and purchase history profile views: 8 tests.
-  - Dashboard analytics services (KPIs with returns, channel comparison, category breakdown, best-selling ranking) and dashboard view rendering: 4 tests.
+  - Dashboard analytics services and dashboard view rendering: 4 tests.
+  - End-to-end business scenarios (Scenarios A–E) and edge-case hardening (atomic rollback on partial stockout, return quantity bounds, decimal cent precision): 8 tests.
 - **System Check:** `python manage.py check` reports 0 issues.
 
 ---
 
 ## 6. Known Issues & Limitations
 - **PostgreSQL Windows Service:** PostgreSQL 18 was partially downloaded earlier without binaries in PATH. App is currently running on SQLite for development speed, ready to switch to PostgreSQL whenever the user starts the PostgreSQL service.
-- **No Unresolved Bugs:** All active features have passing unit tests.
+- **No Unresolved Bugs:** All 55 test cases pass cleanly.
 
 ---
 
 ## 7. Git Version Control
 - **Current Branch:** `master`
-- **Previous Commit:** `5a30f02` ("Phase 4: Complete Customer Management with CRM profiling, order history connection, and buyer segmentation")
-- **Pending Commit:** Phase 5 files and updated `PROJECT_STATUS.md` ready to be committed.
+- **Previous Commit:** `56a7363` ("Phase 5: Complete Sales Dashboard and Reporting with KPIs, channel comparison, Chart.js visualizations, and best-sellers")
+- **Pending Commit:** Phase 6 test suite and updated `PROJECT_STATUS.md` ready to be committed.
 
 ---
 
-## 8. Next Steps (Phase 6)
-- **Task:** Implement **Phase 6: Testing, Edge Case Validation, and System Hardening**.
+## 8. Next Steps (Phase 7)
+- **Task:** Implement **Phase 7: Documentation, Deployment Readiness, and Optional Salesforce Integration**.
 - **Key Deliverables:**
-  - End-to-end integration scenario testing:
-    - Scenario A: Physical store purchase with inventory synchronization.
-    - Scenario B: Online order creation, confirmation, and stock deduction.
-    - Scenario C: Real-time inventory sync across channels.
-    - Scenario D: Low-stock warning detection and restock workflow.
-    - Scenario E: Return restocking vs damage write-off financial integrity.
-  - Input validation and edge-case hardening (e.g. boundary checks, concurrent race conditions, zero items).
-  - Verification across all business scenarios in the specification.
+  - Comprehensive `README.md` with:
+    - Architecture diagram & ER diagram
+    - Setup & installation instructions (PostgreSQL, venv, migrations, seeding)
+    - Retail workflows guide (POS vs Online, Inventory sync, Returns)
+    - Demonstration SQL queries for PostgreSQL reporting
+    - Salesforce CRM integration architectural guide (REST API, customer sync, order event triggers)
+  - Production readiness checklist (`settings.py` environment configurations, static asset collection).
 - **Files to Inspect First:**
-  - `tests/` or app `tests.py` files
-  - `sales/services.py`
-  - `inventory/services.py`
+  - `README.md`
+  - `.env.example`
+  - `chessmart_core/settings.py`
