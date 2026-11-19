@@ -1,20 +1,30 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard - ChessMart Retail Operations{% endblock %}
+{% block title %}Seller Operations Dashboard - ChessMart{% endblock %}
+{% block theme_class %}theme-seller{% endblock %}
 
 {% block extra_css %}
 <style>
-    .stat-card {
-        border-radius: 0.5rem;
-        transition: transform 0.15s ease-in-out;
-    }
-    .stat-card:hover {
-        transform: translateY(-2px);
-    }
-    .chart-container {
+    .chart-box {
         position: relative;
-        height: 280px;
+        height: 290px;
         width: 100%;
+    }
+    .kpi-icon-emerald {
+        background-color: #E6F4F1;
+        color: #16866A;
+    }
+    .kpi-icon-teal {
+        background-color: #CCFBF1;
+        color: #0F766E;
+    }
+    .kpi-icon-blue {
+        background-color: #EFF6FF;
+        color: #2563EB;
+    }
+    .kpi-icon-amber {
+        background-color: #FEF3C7;
+        color: #D97706;
     }
 </style>
 {% endblock %}
@@ -23,170 +33,194 @@
 <!-- Executive Header -->
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div>
-        <h2 class="h3 mb-0 fw-bold"><i class="bi bi-speedometer2 me-2 text-primary"></i>Executive Retail Dashboard</h2>
-        <p class="text-muted mb-0">Real-time performance analytics across Physical POS and Online Webstore sales channels.</p>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="cm-badge cm-badge-primary">
+                <i class="bi bi-shop-window"></i> Retail Operations
+            </span>
+            <span class="text-muted small">Updated Live</span>
+        </div>
+        <h2 class="h3 mb-0 fw-bold">Executive Retail Dashboard</h2>
     </div>
-    <div class="d-flex gap-2">
-        <a href="{% url 'sales:pos' %}" class="btn btn-success">
-            <i class="bi bi-shop me-1"></i> New POS Sale
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'sales:pos' %}" class="btn btn-cm-primary d-inline-flex align-items-center gap-2">
+            <i class="bi bi-shop"></i> POS Counter Checkout
         </a>
-        <a href="{% url 'sales:online_create' %}" class="btn btn-outline-primary">
-            <i class="bi bi-globe me-1"></i> New Online Order
+        <a href="{% url 'sales:online_create' %}" class="btn btn-cm-outline d-inline-flex align-items-center gap-2">
+            <i class="bi bi-globe"></i> New Online Order
         </a>
-        <a href="{% url 'inventory:adjust' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-plus-slash-minus me-1"></i> Adjust Stock
+        <a href="{% url 'inventory:adjust' %}" class="btn btn-outline-secondary rounded-3 d-inline-flex align-items-center gap-2">
+            <i class="bi bi-plus-slash-minus"></i> Stock Adjust
         </a>
     </div>
 </div>
 
 <!-- Low Stock Banner -->
 {% if kpis.low_stock_count > 0 %}
-<div class="alert alert-danger border-0 shadow-sm d-flex justify-content-between align-items-center mb-4" role="alert">
+<div class="cm-card border-0 mb-4 p-3 bg-danger-subtle d-flex justify-content-between align-items-center flex-wrap gap-2">
     <div class="d-flex align-items-center">
-        <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-danger"></i>
+        <div class="brand-icon bg-danger text-white me-3" style="width: 40px; height: 40px;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
         <div>
-            <strong>Attention Required:</strong> {{ kpis.low_stock_count }} chess product{{ kpis.low_stock_count|pluralize }} reached or dropped below safety threshold!
+            <div class="fw-bold text-danger">Inventory Safety Warning</div>
+            <div class="text-danger-emphasis small">{{ kpis.low_stock_count }} chess product{{ kpis.low_stock_count|pluralize }} have reached or dropped below their minimum safety threshold.</div>
         </div>
     </div>
-    <a href="{% url 'inventory:low_stock' %}" class="btn btn-sm btn-danger px-3">
-        Review &amp; Restock &rarr;
+    <a href="{% url 'inventory:low_stock' %}" class="btn btn-sm btn-danger px-3 rounded-pill fw-semibold">
+        Review Stock Levels &rarr;
     </a>
 </div>
 {% endif %}
 
 <!-- KPI Cards Row -->
-<div class="row g-3 mb-4">
+<div class="row g-4 mb-4">
     <!-- Net Revenue -->
     <div class="col-xl-3 col-md-6">
-        <div class="card shadow-sm border-0 border-start border-primary border-4 stat-card h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted fw-bold text-uppercase">Net Revenue</small>
-                    <span class="badge bg-primary-subtle text-primary"><i class="bi bi-cash-coin"></i></span>
+        <div class="kpi-card h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="kpi-label">Net Revenue</span>
+                    <div class="kpi-value text-dark">${{ kpis.net_revenue|floatformat:2 }}</div>
                 </div>
-                <div class="fs-2 fw-bold font-monospace text-dark mt-2">${{ kpis.net_revenue|floatformat:2 }}</div>
-                <small class="text-muted">
-                    Gross: ${{ kpis.gross_revenue|floatformat:2 }}
-                    {% if kpis.total_refunds > 0 %}
-                        <span class="text-danger">(-${{ kpis.total_refunds|floatformat:2 }} refunds)</span>
-                    {% endif %}
-                </small>
+                <div class="kpi-icon-box kpi-icon-emerald">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between border-top pt-2 mt-2">
+                <span class="text-muted small">Gross: ${{ kpis.gross_revenue|floatformat:2 }}</span>
+                {% if kpis.total_refunds > 0 %}
+                    <span class="cm-badge cm-badge-danger small">-${{ kpis.total_refunds|floatformat:2 }} refunds</span>
+                {% else %}
+                    <span class="text-success small"><i class="bi bi-check-circle me-1"></i>Zero refunds</span>
+                {% endif %}
             </div>
         </div>
     </div>
 
     <!-- Net Profit -->
     <div class="col-xl-3 col-md-6">
-        <div class="card shadow-sm border-0 border-start border-success border-4 stat-card h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted fw-bold text-uppercase">Net Profit</small>
-                    <span class="badge bg-success-subtle text-success"><i class="bi bi-graph-up-arrow"></i></span>
+        <div class="kpi-card h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="kpi-label">Net Profit</span>
+                    <div class="kpi-value" style="color: #16866A;">+${{ kpis.net_profit|floatformat:2 }}</div>
                 </div>
-                <div class="fs-2 fw-bold font-monospace text-success mt-2">+${{ kpis.net_profit|floatformat:2 }}</div>
-                <small class="text-muted">
-                    Margin: <strong class="text-dark">{{ kpis.profit_margin_percent|floatformat:1 }}%</strong> | COGS: ${{ kpis.cogs|floatformat:2 }}
-                </small>
+                <div class="kpi-icon-box kpi-icon-teal">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between border-top pt-2 mt-2">
+                <span class="text-muted small">COGS: ${{ kpis.cogs|floatformat:2 }}</span>
+                <span class="cm-badge cm-badge-secondary">{{ kpis.profit_margin_percent|floatformat:1 }}% Margin</span>
             </div>
         </div>
     </div>
 
     <!-- Total Orders -->
     <div class="col-xl-3 col-md-6">
-        <div class="card shadow-sm border-0 border-start border-info border-4 stat-card h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted fw-bold text-uppercase">Total Orders</small>
-                    <span class="badge bg-info-subtle text-info"><i class="bi bi-receipt"></i></span>
+        <div class="kpi-card h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="kpi-label">Total Valid Orders</span>
+                    <div class="kpi-value text-dark">{{ kpis.total_orders }}</div>
                 </div>
-                <div class="fs-2 fw-bold font-monospace text-dark mt-2">{{ kpis.total_orders }}</div>
-                <small class="text-muted">
-                    {% for ch in channel_comparison %}
-                        {{ ch.store_type }}: <strong>{{ ch.order_count }}</strong>{% if not forloop.last %} | {% endif %}
-                    {% endfor %}
-                </small>
+                <div class="kpi-icon-box kpi-icon-blue">
+                    <i class="bi bi-receipt-cutoff"></i>
+                </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between border-top pt-2 mt-2 text-muted small">
+                {% for ch in channel_comparison %}
+                    <span>{{ ch.store_type }}: <strong>{{ ch.order_count }}</strong></span>
+                {% endfor %}
             </div>
         </div>
     </div>
 
     <!-- Inventory Health -->
     <div class="col-xl-3 col-md-6">
-        <div class="card shadow-sm border-0 border-start border-warning border-4 stat-card h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted fw-bold text-uppercase">Available Inventory</small>
-                    <span class="badge bg-warning-subtle text-warning"><i class="bi bi-boxes"></i></span>
+        <div class="kpi-card h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="kpi-label">On-Hand Stock</span>
+                    <div class="kpi-value text-dark">{{ kpis.total_available_stock }} <span class="fs-6 fw-normal text-muted">units</span></div>
                 </div>
-                <div class="fs-2 fw-bold font-monospace text-dark mt-2">{{ kpis.total_available_stock }} <span class="fs-6 fw-normal text-muted">units</span></div>
-                <small class="text-muted">
-                    {{ kpis.total_products }} Products
-                    {% if kpis.low_stock_count > 0 %}
-                        | <span class="badge bg-danger">{{ kpis.low_stock_count }} Low Stock</span>
-                    {% endif %}
-                </small>
+                <div class="kpi-icon-box kpi-icon-amber">
+                    <i class="bi bi-boxes"></i>
+                </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between border-top pt-2 mt-2">
+                <span class="text-muted small">{{ kpis.total_products }} active SKUs</span>
+                {% if kpis.low_stock_count > 0 %}
+                    <span class="cm-badge cm-badge-danger">{{ kpis.low_stock_count }} Low</span>
+                {% else %}
+                    <span class="cm-badge cm-badge-success">Optimal</span>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-<!-- Multi-Channel Comparison Cards -->
-<div class="row g-3 mb-4">
+<!-- Multi-Channel Comparison -->
+<div class="row g-4 mb-4">
     <div class="col-12">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-diagram-3 me-2 text-primary"></i>Sales Channels Comparison</h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-4 text-center">
-                    {% for ch in channel_comparison %}
-                    <div class="col-md-6 border-end">
-                        <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
-                            {% if ch.store_type == 'PHYSICAL' %}
-                                <span class="badge bg-primary fs-6"><i class="bi bi-shop me-1"></i> {{ ch.store_name }}</span>
-                            {% else %}
-                                <span class="badge bg-info text-dark fs-6"><i class="bi bi-globe me-1"></i> {{ ch.store_name }}</span>
-                            {% endif %}
-                        </div>
-                        <div class="fs-3 fw-bold font-monospace text-dark">${{ ch.revenue|floatformat:2 }}</div>
-                        <div class="text-muted small mb-2">{{ ch.order_count }} order{{ ch.order_count|pluralize }} ({{ ch.share_percent }}% of total sales)</div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar {% if ch.store_type == 'PHYSICAL' %}bg-primary{% else %}bg-info{% endif %}"
-                                 role="progressbar" style="width: {{ ch.share_percent }}%;"></div>
-                        </div>
-                    </div>
-                    {% endfor %}
+        <div class="cm-card">
+            <div class="cm-card-header">
+                <div>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-diagram-3 me-2 text-success"></i>Sales Channels Comparison</h5>
+                    <small class="text-muted">Compare Physical Retail POS versus Online Webstore sales</small>
                 </div>
+            </div>
+            <div class="row g-4 text-center">
+                {% for ch in channel_comparison %}
+                <div class="col-md-6 {% if not forloop.last %}border-end-md{% endif %}">
+                    <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                        {% if ch.store_type == 'PHYSICAL' %}
+                            <span class="cm-badge cm-badge-primary fs-6"><i class="bi bi-shop me-1"></i> {{ ch.store_name }}</span>
+                        {% else %}
+                            <span class="cm-badge cm-badge-secondary fs-6"><i class="bi bi-globe me-1"></i> {{ ch.store_name }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="fs-2 fw-bold font-monospace text-dark mt-2">${{ ch.revenue|floatformat:2 }}</div>
+                    <div class="text-muted small mb-3">{{ ch.order_count }} order{{ ch.order_count|pluralize }} ({{ ch.share_percent }}% of total volume)</div>
+                    <div class="progress rounded-pill" style="height: 10px; background-color: #E2E8F0;">
+                        <div class="progress-bar rounded-pill" role="progressbar"
+                             style="width: {{ ch.share_percent }}%; background: var(--cm-accent-gradient);"></div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 </div>
 
-<!-- Charts Section -->
+<!-- Interactive Charts Row -->
 <div class="row g-4 mb-4">
     <!-- Monthly Revenue Trend Chart -->
     <div class="col-lg-7">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-graph-up me-2 text-primary"></i>Monthly Revenue Trend</h5>
-            </div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="monthlyTrendChart"></canvas>
+        <div class="cm-card h-100">
+            <div class="cm-card-header">
+                <div>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-graph-up me-2 text-success"></i>Monthly Revenue Velocity</h5>
+                    <small class="text-muted">Historical monthly gross sales</small>
                 </div>
+            </div>
+            <div class="chart-box">
+                <canvas id="monthlyTrendChart"></canvas>
             </div>
         </div>
     </div>
 
     <!-- Sales by Category Chart -->
     <div class="col-lg-5">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-pie-chart me-2 text-primary"></i>Sales by Category</h5>
-            </div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="categoryChart"></canvas>
+        <div class="cm-card h-100">
+            <div class="cm-card-header">
+                <div>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-pie-chart me-2 text-success"></i>Sales by Category</h5>
+                    <small class="text-muted">Revenue share across categories</small>
                 </div>
+            </div>
+            <div class="chart-box">
+                <canvas id="categoryChart"></canvas>
             </div>
         </div>
     </div>
@@ -194,109 +228,108 @@
 
 <!-- Lower Section: Best-Sellers & Recent Transactions -->
 <div class="row g-4">
-    <!-- Best-Selling Products -->
+    <!-- Best-Selling Products Table -->
     <div class="col-lg-7">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-trophy me-2 text-warning"></i>Top Selling Products</h5>
-                <a href="{% url 'products:list' %}" class="small text-decoration-none">Full catalog &rarr;</a>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">Rank</th>
-                                <th>Product</th>
-                                <th>Category</th>
-                                <th class="text-center">Units Sold</th>
-                                <th class="text-end">Revenue</th>
-                                <th class="text-end pe-3">Profit</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for prod in best_sellers %}
-                            <tr>
-                                <td class="ps-3 fw-bold text-muted">#{{ forloop.counter }}</td>
-                                <td>
-                                    <a href="{% url 'products:detail' prod.product_id %}" class="fw-bold text-dark text-decoration-none">
-                                        {{ prod.name }}
-                                    </a>
-                                    <div class="font-monospace text-muted small">{{ prod.sku }}</div>
-                                </td>
-                                <td><span class="badge bg-light text-dark border small">{{ prod.category }}</span></td>
-                                <td class="text-center fw-bold">{{ prod.units_sold }}</td>
-                                <td class="text-end font-monospace">${{ prod.total_revenue|floatformat:2 }}</td>
-                                <td class="text-end pe-3 font-monospace text-success fw-bold">+${{ prod.profit|floatformat:2 }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center py-4 text-muted small">No product sales recorded yet.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        <div class="cm-card h-100 p-0 overflow-hidden">
+            <div class="p-4 pb-3 border-bottom d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-trophy me-2 text-warning"></i>Top Selling Products</h5>
+                    <small class="text-muted">Ranked by units sold &amp; revenue</small>
                 </div>
+                <a href="{% url 'products:list' %}" class="small text-decoration-none fw-semibold" style="color: var(--cm-primary);">
+                    Full catalog &rarr;
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="cm-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Rank</th>
+                            <th>Product</th>
+                            <th class="text-center">Units</th>
+                            <th class="text-end">Revenue</th>
+                            <th class="text-end pe-4">Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prod in best_sellers %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-muted">#{{ forloop.counter }}</td>
+                            <td>
+                                <a href="{% url 'products:detail' prod.product_id %}" class="fw-bold text-dark text-decoration-none d-block">
+                                    {{ prod.name }}
+                                </a>
+                                <span class="font-monospace text-muted small">{{ prod.sku }} &bull; {{ prod.category }}</span>
+                            </td>
+                            <td class="text-center fw-bold">{{ prod.units_sold }}</td>
+                            <td class="text-end font-monospace fw-semibold">${{ prod.total_revenue|floatformat:2 }}</td>
+                            <td class="text-end pe-4 font-monospace fw-bold text-success">+${{ prod.profit|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted small">No product sales recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <!-- Recent Orders Feed -->
     <div class="col-lg-5">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Orders</h5>
-                <a href="{% url 'sales:list' %}" class="small text-decoration-none">All orders &rarr;</a>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">Order #</th>
-                                <th>Customer</th>
-                                <th>Channel</th>
-                                <th class="text-end">Amount</th>
-                                <th class="text-center pe-3">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for order in recent_orders %}
-                            <tr>
-                                <td class="ps-3 font-monospace fw-bold text-primary small">
-                                    <a href="{% url 'sales:detail' order.pk %}" class="text-decoration-none">
-                                        {{ order.order_number }}
-                                    </a>
-                                </td>
-                                <td class="small text-truncate" style="max-width: 110px;">{{ order.customer.name }}</td>
-                                <td>
-                                    {% if order.store.store_type == 'PHYSICAL' %}
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">POS</span>
-                                    {% else %}
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle small">Online</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-end font-monospace small fw-bold">${{ order.total_amount|floatformat:2 }}</td>
-                                <td class="text-center pe-3">
-                                    {% if order.order_status == 'DELIVERED' %}
-                                        <span class="badge bg-success small">Delivered</span>
-                                    {% elif order.order_status == 'CONFIRMED' %}
-                                        <span class="badge bg-primary small">Confirmed</span>
-                                    {% elif order.order_status == 'CANCELLED' %}
-                                        <span class="badge bg-danger small">Cancelled</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary small">{{ order.get_order_status_display }}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center py-4 text-muted small">No orders recorded yet.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        <div class="cm-card h-100 p-0 overflow-hidden">
+            <div class="p-4 pb-3 border-bottom d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-secondary"></i>Recent Transactions</h5>
+                    <small class="text-muted">Latest sales across channels</small>
                 </div>
+                <a href="{% url 'sales:list' %}" class="small text-decoration-none fw-semibold" style="color: var(--cm-primary);">
+                    All orders &rarr;
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="cm-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Order #</th>
+                            <th>Customer</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-center pe-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td class="ps-4 font-monospace fw-bold small">
+                                <a href="{% url 'sales:detail' order.pk %}" class="text-decoration-none" style="color: var(--cm-primary);">
+                                    {{ order.order_number }}
+                                </a>
+                            </td>
+                            <td class="small text-truncate" style="max-width: 120px;">
+                                <div class="fw-semibold text-dark">{{ order.customer.name }}</div>
+                                <span class="text-muted">{{ order.store.name|truncatechars:18 }}</span>
+                            </td>
+                            <td class="text-end font-monospace fw-semibold small">${{ order.total_amount|floatformat:2 }}</td>
+                            <td class="text-center pe-4">
+                                {% if order.order_status == 'DELIVERED' %}
+                                    <span class="cm-badge cm-badge-success small">Delivered</span>
+                                {% elif order.order_status == 'CONFIRMED' %}
+                                    <span class="cm-badge cm-badge-primary small">Confirmed</span>
+                                {% elif order.order_status == 'CANCELLED' %}
+                                    <span class="cm-badge cm-badge-danger small">Cancelled</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark border small">{{ order.get_order_status_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted small">No orders recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -308,7 +341,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Monthly Revenue Trend Chart
+    // 1. Monthly Revenue Trend Chart (Emerald Styling)
     const monthlyLabels = {{ chart_monthly_labels|safe }};
     const monthlyRevenues = {{ chart_monthly_revenues|safe }};
 
@@ -320,27 +353,36 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Monthly Revenue ($)',
                 data: monthlyRevenues,
-                backgroundColor: 'rgba(13, 110, 253, 0.7)',
-                borderColor: 'rgba(13, 110, 253, 1)',
-                borderWidth: 1,
-                borderRadius: 4,
+                backgroundColor: 'rgba(22, 134, 106, 0.75)',
+                borderColor: '#16866A',
+                borderWidth: 1.5,
+                borderRadius: 8,
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
             scales: {
                 y: {
                     beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.04)' },
                     ticks: {
-                        callback: function(value) { return '$' + value; }
+                        callback: function(value) { return '$' + value; },
+                        font: { family: 'Inter' }
                     }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { family: 'Inter' } }
                 }
             }
         }
     });
 
-    // 2. Sales by Category Doughnut Chart
+    // 2. Sales by Category Doughnut Chart (Emerald/Teal Palette)
     const categoryLabels = {{ chart_category_labels|safe }};
     const categoryRevenues = {{ chart_category_revenues|safe }};
 
@@ -352,22 +394,29 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 data: categoryRevenues.length > 0 && categoryRevenues.some(r => r > 0) ? categoryRevenues : [1],
                 backgroundColor: [
-                    '#0d6efd',
-                    '#198754',
-                    '#ffc107',
-                    '#0dcaf0',
-                    '#6c757d',
-                    '#6610f2'
+                    '#16866A',
+                    '#2DD4BF',
+                    '#0F766E',
+                    '#14B8A6',
+                    '#99F6E4',
+                    '#042F2E'
                 ],
-                borderWidth: 1
+                borderWidth: 2,
+                borderColor: '#FFFFFF'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '70%',
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 14,
+                        font: { family: 'Inter', size: 12 }
+                    }
                 }
             }
         }
