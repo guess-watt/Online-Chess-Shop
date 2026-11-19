@@ -3,33 +3,38 @@
 {% block title %}{{ product.name }} - ChessMart{% endblock %}
 
 {% block content %}
+<!-- Top Navigation & Action Header -->
 <div class="mb-4">
-    <a href="{% url 'products:list' %}" class="btn btn-outline-secondary btn-sm mb-3">
-        <i class="bi bi-arrow-left me-1"></i> Back to Product Catalog
+    <a href="{% url 'products:list' %}" class="btn btn-cm-secondary btn-cm-sm mb-3 d-inline-flex align-items-center gap-1">
+        <i class="bi bi-arrow-left"></i> Back to Product Catalog
     </a>
-    <div class="d-flex justify-content-between align-items-start">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
         <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <span class="badge bg-secondary font-monospace">{{ product.sku }}</span>
-                <span class="badge bg-light text-dark border">{{ product.category.name }}</span>
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                <span class="cm-badge cm-badge-neutral font-monospace">{{ product.sku }}</span>
+                <span class="cm-badge cm-badge-primary">{{ product.category.name }}</span>
                 {% if product.is_active %}
-                    <span class="badge bg-success">Active</span>
+                    <span class="cm-badge cm-badge-success">Active</span>
                 {% else %}
-                    <span class="badge bg-secondary">Inactive</span>
+                    <span class="cm-badge cm-badge-neutral">Inactive</span>
+                {% endif %}
+                {% if product.is_low_stock %}
+                    <span class="cm-badge cm-badge-danger"><i class="bi bi-exclamation-triangle-fill"></i> Low Stock</span>
                 {% endif %}
             </div>
             <h2 class="h3 fw-bold mb-0">{{ product.name }}</h2>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{% url 'inventory:adjust' %}?product={{ product.pk }}" class="btn btn-success">
-                <i class="bi bi-box-arrow-in-down me-1"></i> Adjust / Restock
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'inventory:adjust' %}?product={{ product.pk }}" class="btn btn-cm-primary d-inline-flex align-items-center gap-2">
+                <i class="bi bi-box-arrow-in-down"></i> Adjust / Restock
             </a>
-            <a href="{% url 'products:update' product.pk %}" class="btn btn-outline-primary">
-                <i class="bi bi-pencil me-1"></i> Edit Product
+            <a href="{% url 'products:update' product.pk %}" class="btn btn-cm-outline d-inline-flex align-items-center gap-2">
+                <i class="bi bi-pencil"></i> Edit Product
             </a>
             <form method="post" action="{% url 'products:toggle_status' product.pk %}" class="d-inline" onsubmit="return confirm('Change product active status?');">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-outline-warning">
+                <button type="submit" class="btn btn-cm-secondary d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-toggle-on"></i>
                     {% if product.is_active %}Deactivate{% else %}Activate{% endif %}
                 </button>
             </form>
@@ -40,51 +45,48 @@
 <div class="row g-4">
     <!-- Left Column: Financial & Details -->
     <div class="col-lg-5">
-        <!-- Financial Card -->
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-cash-stack me-2 text-success"></i>Pricing & Margins</h5>
+        <!-- Pricing & Margins Card -->
+        <div class="cm-card mb-4">
+            <div class="cm-card-header">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-cash-stack me-2 text-success"></i>Pricing &amp; Margins</h5>
+                <span class="text-muted small">Financial Metrics</span>
             </div>
-            <div class="card-body">
-                <div class="row text-center g-3">
-                    <div class="col-4 border-end">
-                        <small class="text-muted d-block">Cost Price</small>
-                        <span class="fs-5 fw-bold text-secondary">${{ product.cost_price|floatformat:2 }}</span>
-                    </div>
-                    <div class="col-4 border-end">
-                        <small class="text-muted d-block">Selling Price</small>
-                        <span class="fs-5 fw-bold text-dark">${{ product.selling_price|floatformat:2 }}</span>
-                    </div>
-                    <div class="col-4">
-                        <small class="text-muted d-block">Unit Profit</small>
-                        <span class="fs-5 fw-bold text-success">+${{ product.unit_profit|floatformat:2 }}</span>
-                    </div>
+            <div class="row text-center g-3">
+                <div class="col-4 border-end">
+                    <span class="kpi-label d-block">Cost Price</span>
+                    <span class="fs-4 fw-bold font-monospace text-muted">${{ product.cost_price|floatformat:2 }}</span>
+                </div>
+                <div class="col-4 border-end">
+                    <span class="kpi-label d-block">Selling Price</span>
+                    <span class="fs-4 fw-bold font-monospace text-dark">${{ product.selling_price|floatformat:2 }}</span>
+                </div>
+                <div class="col-4">
+                    <span class="kpi-label d-block">Unit Profit</span>
+                    <span class="fs-4 fw-bold font-monospace text-success">+${{ product.unit_profit|floatformat:2 }}</span>
                 </div>
             </div>
         </div>
 
         <!-- Specifications Card -->
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-info-circle me-2 text-primary"></i>Product Details</h5>
+        <div class="cm-card">
+            <div class="cm-card-header">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2 text-primary"></i>Product Details</h5>
             </div>
-            <div class="card-body">
-                <p class="mb-3">
-                    <strong>Description:</strong><br>
-                    <span class="text-muted">{{ product.description|default:"No description provided." }}</span>
-                </p>
-                <div class="d-flex justify-content-between border-top pt-2 mb-2">
-                    <span class="text-muted">Low Stock Threshold:</span>
-                    <span class="fw-semibold">{{ product.low_stock_threshold }} units</span>
-                </div>
-                <div class="d-flex justify-content-between border-top pt-2 mb-2">
-                    <span class="text-muted">Created:</span>
-                    <span>{{ product.created_at|date:"M d, Y H:i" }}</span>
-                </div>
-                <div class="d-flex justify-content-between border-top pt-2">
-                    <span class="text-muted">Last Updated:</span>
-                    <span>{{ product.updated_at|date:"M d, Y H:i" }}</span>
-                </div>
+            <div class="mb-3">
+                <span class="text-muted small d-block mb-1 fw-bold text-uppercase">Description</span>
+                <p class="text-dark mb-0">{{ product.description|default:"No description provided."|linebreaksbr }}</p>
+            </div>
+            <div class="d-flex justify-content-between align-items-center border-top py-2">
+                <span class="text-muted small">Low-Stock Alert Threshold:</span>
+                <span class="fw-bold">{{ product.low_stock_threshold }} units</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center border-top py-2">
+                <span class="text-muted small">Date Created:</span>
+                <span class="small">{{ product.created_at|date:"M d, Y H:i" }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                <span class="text-muted small">Last Modified:</span>
+                <span class="small">{{ product.updated_at|date:"M d, Y H:i" }}</span>
             </div>
         </div>
     </div>
@@ -92,98 +94,102 @@
     <!-- Right Column: Multi-channel Stock & Movements -->
     <div class="col-lg-7">
         <!-- Multi-Channel Stock Distribution Card -->
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-buildings me-2 text-primary"></i>Store Stock Distribution</h5>
-                <span class="badge {% if product.is_low_stock %}bg-danger{% else %}bg-success{% endif %} fs-6">
+        <div class="cm-card p-0 overflow-hidden mb-4">
+            <div class="p-4 pb-3 border-bottom d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-buildings me-2 text-primary"></i>Store Stock Distribution</h5>
+                    <small class="text-muted">On-hand inventory breakdown per sales channel</small>
+                </div>
+                <span class="cm-badge {% if product.is_low_stock %}cm-badge-danger{% else %}cm-badge-success{% endif %} fs-6">
                     Total: {{ product.total_stock }} units
                 </span>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">Sales Channel / Store</th>
-                                <th>Type</th>
-                                <th class="text-center">Stock on Hand</th>
-                                <th class="text-end pe-3">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in store_stocks %}
-                            <tr>
-                                <td class="ps-3 fw-bold">{{ item.store.name }}</td>
-                                <td>
-                                    {% if item.store.store_type == 'PHYSICAL' %}
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
-                                            <i class="bi bi-shop me-1"></i> Physical Store
-                                        </span>
-                                    {% else %}
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle">
-                                            <i class="bi bi-globe me-1"></i> Online Channel
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center fw-bold fs-6">
-                                    {{ item.quantity }}
-                                </td>
-                                <td class="text-end pe-3">
-                                    <a href="{% url 'inventory:adjust' %}?product={{ product.pk }}&store={{ item.store.pk }}" class="btn btn-sm btn-outline-success">
-                                        <i class="bi bi-plus-minus me-1"></i> Adjust
-                                    </a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center py-3 text-muted">No stores configured.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="table-responsive">
+                <table class="cm-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Sales Channel / Store</th>
+                            <th>Channel Type</th>
+                            <th class="text-center">Stock on Hand</th>
+                            <th class="text-end pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in store_stocks %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-dark">{{ item.store.name }}</td>
+                            <td>
+                                {% if item.store.store_type == 'PHYSICAL' %}
+                                    <span class="cm-badge cm-badge-primary">
+                                        <i class="bi bi-shop"></i> Physical POS
+                                    </span>
+                                {% else %}
+                                    <span class="cm-badge cm-badge-secondary">
+                                        <i class="bi bi-globe"></i> Online Channel
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center font-monospace fw-bold fs-6">
+                                {{ item.quantity }}
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'inventory:adjust' %}?product={{ product.pk }}&store={{ item.store.pk }}" class="btn btn-cm-outline btn-cm-sm d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-plus-slash-minus"></i> Adjust
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted small">No active stores configured.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
 
         <!-- Recent Audit Movements -->
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-secondary"></i>Recent Stock Movements</h5>
-                <a href="{% url 'inventory:history' %}?product={{ product.pk }}" class="small text-decoration-none">View full history &rarr;</a>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">Date</th>
-                                <th>Store</th>
-                                <th>Type</th>
-                                <th class="text-center">Change</th>
-                                <th>Reason</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for mov in recent_movements %}
-                            <tr>
-                                <td class="ps-3 text-muted small">{{ mov.created_at|date:"M d, Y H:i" }}</td>
-                                <td class="small">{{ mov.store.name }}</td>
-                                <td>
-                                    <span class="badge bg-light text-dark border small">{{ mov.get_movement_type_display }}</span>
-                                </td>
-                                <td class="text-center fw-bold {% if mov.quantity > 0 %}text-success{% else %}text-danger{% endif %}">
-                                    {% if mov.quantity > 0 %}+{{ mov.quantity }}{% else %}{{ mov.quantity }}{% endif %}
-                                </td>
-                                <td class="small text-muted">{{ mov.reason|default:"-" }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center py-4 text-muted small">No stock movements recorded yet.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        <div class="cm-card p-0 overflow-hidden">
+            <div class="p-4 pb-3 border-bottom d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-secondary"></i>Recent Stock Movements</h5>
+                    <small class="text-muted">Immutable audit history for this SKU</small>
                 </div>
+                <a href="{% url 'inventory:history' %}?product={{ product.pk }}" class="small text-decoration-none fw-semibold" style="color: var(--cm-primary);">
+                    Full history &rarr;
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="cm-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Date</th>
+                            <th>Store</th>
+                            <th>Type</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="pe-4">Reason / Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in recent_movements %}
+                        <tr>
+                            <td class="ps-4 text-muted small">{{ mov.created_at|date:"M d, Y H:i" }}</td>
+                            <td class="small fw-semibold">{{ mov.store.name }}</td>
+                            <td>
+                                <span class="cm-badge cm-badge-neutral small">{{ mov.get_movement_type_display }}</span>
+                            </td>
+                            <td class="text-center font-monospace fw-bold {% if mov.quantity > 0 %}text-success{% else %}text-danger{% endif %}">
+                                {% if mov.quantity > 0 %}+{{ mov.quantity }}{% else %}{{ mov.quantity }}{% endif %}
+                            </td>
+                            <td class="pe-4 small text-muted text-truncate" style="max-width: 180px;">{{ mov.reason|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted small">No stock movements recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

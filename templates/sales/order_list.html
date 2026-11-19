@@ -3,136 +3,144 @@
 {% block title %}Sales & Orders - ChessMart{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div>
-        <h2 class="h3 mb-0 fw-bold"><i class="bi bi-receipt me-2 text-primary"></i>Sales &amp; Orders</h2>
-        <p class="text-muted mb-0">Unified order management across Physical POS and Online sales channels.</p>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="cm-badge cm-badge-primary">
+                <i class="bi bi-receipt"></i> Transactions Ledger
+            </span>
+            <span class="text-muted small">Multi-Channel Fulfillment</span>
+        </div>
+        <h2 class="h3 mb-0 fw-bold">Sales &amp; Orders</h2>
+        <p class="text-muted mb-0 small">Unified order tracking and fulfillment across Physical POS and Online sales channels.</p>
     </div>
-    <div class="d-flex gap-2">
-        <a href="{% url 'sales:online_create' %}" class="btn btn-outline-primary">
-            <i class="bi bi-globe me-1"></i> New Online Order
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'sales:online_create' %}" class="btn btn-cm-outline d-inline-flex align-items-center gap-2">
+            <i class="bi bi-globe"></i> New Online Order
         </a>
-        <a href="{% url 'sales:pos' %}" class="btn btn-success">
-            <i class="bi bi-shop me-1"></i> Open POS Terminal
+        <a href="{% url 'sales:pos' %}" class="btn btn-cm-primary d-inline-flex align-items-center gap-2">
+            <i class="bi bi-shop"></i> Open POS Terminal
         </a>
     </div>
 </div>
 
 <!-- Search & Filters -->
-<div class="card shadow-sm border-0 mb-4">
-    <div class="card-body p-3">
-        <form method="get" class="row g-2 align-items-center">
-            <div class="col-md-5">
-                <div class="input-group">
-                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                    <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Search by order #, customer name, email...">
-                </div>
+<div class="cm-card mb-4 p-3">
+    <form method="get" class="row g-3 align-items-center">
+        <div class="col-lg-5 col-md-12">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 text-muted">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0" placeholder="Search by order #, customer name, email...">
             </div>
-            <div class="col-md-3">
-                <select name="status" class="form-select">
-                    <option value="">All Statuses</option>
-                    {% for code, label in status_choices %}
-                        <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select name="store" class="form-select">
-                    <option value="">All Channels</option>
-                    {% for s in stores %}
-                        <option value="{{ s.id }}" {% if selected_store == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-dark w-100"><i class="bi bi-funnel me-1"></i> Filter</button>
-                <a href="{% url 'sales:list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i></a>
-            </div>
-        </form>
-    </div>
+        </div>
+        <div class="col-lg-3 col-md-4">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-lg-2 col-md-4">
+            <select name="store" class="form-select">
+                <option value="">All Channels</option>
+                {% for s in stores %}
+                    <option value="{{ s.id }}" {% if selected_store == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-lg-2 col-md-4 d-flex gap-2">
+            <button type="submit" class="btn btn-cm-primary w-100 d-inline-flex align-items-center justify-content-center gap-1">
+                <i class="bi bi-funnel"></i> Filter
+            </button>
+            <a href="{% url 'sales:list' %}" class="btn btn-cm-secondary" title="Reset Filters">
+                <i class="bi bi-arrow-counterclockwise"></i>
+            </a>
+        </div>
+    </form>
 </div>
 
 <!-- Orders Table -->
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-3">Order #</th>
-                        <th>Date</th>
-                        <th>Customer</th>
-                        <th>Sales Channel</th>
-                        <th class="text-center">Items</th>
-                        <th class="text-end">Total Amount</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-end pe-3">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in orders %}
-                    <tr>
-                        <td class="ps-3 fw-bold font-monospace text-primary">
-                            <a href="{% url 'sales:detail' order.pk %}" class="text-decoration-none">
-                                {{ order.order_number }}
-                            </a>
-                        </td>
-                        <td class="text-muted small">
-                            {{ order.created_at|date:"M d, Y H:i" }}
-                        </td>
-                        <td>
-                            <span class="fw-semibold text-dark">{{ order.customer.name }}</span>
-                            <small class="text-muted d-block">{{ order.customer.get_customer_type_display }}</small>
-                        </td>
-                        <td>
-                            {% if order.store.store_type == 'PHYSICAL' %}
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
-                                    <i class="bi bi-shop me-1"></i> POS / Physical
-                                </span>
-                            {% else %}
-                                <span class="badge bg-info-subtle text-info border border-info-subtle">
-                                    <i class="bi bi-globe me-1"></i> Online Order
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <span class="badge bg-light text-dark border">{{ order.items.count }} items</span>
-                        </td>
-                        <td class="text-end fw-bold font-monospace fs-6">
-                            ${{ order.total_amount|floatformat:2 }}
-                        </td>
-                        <td class="text-center">
-                            {% if order.order_status == 'DELIVERED' %}
-                                <span class="badge bg-success">Delivered</span>
-                            {% elif order.order_status == 'CONFIRMED' %}
-                                <span class="badge bg-primary">Confirmed</span>
-                            {% elif order.order_status == 'PROCESSING' %}
-                                <span class="badge bg-info text-dark">Processing</span>
-                            {% elif order.order_status == 'SHIPPED' %}
-                                <span class="badge bg-warning text-dark">Shipped</span>
-                            {% elif order.order_status == 'CANCELLED' %}
-                                <span class="badge bg-danger">Cancelled</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Pending</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-end pe-3">
-                            <a href="{% url 'sales:detail' order.pk %}" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-eye me-1"></i> View
-                            </a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
-                            <i class="bi bi-receipt display-6 d-block mb-2 text-secondary"></i>
-                            No sales orders found matching your criteria.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+<div class="cm-card p-0 overflow-hidden">
+    <div class="table-responsive">
+        <table class="cm-table">
+            <thead>
+                <tr>
+                    <th class="ps-4">Order #</th>
+                    <th>Date &amp; Time</th>
+                    <th>Customer</th>
+                    <th>Sales Channel</th>
+                    <th class="text-center">Items</th>
+                    <th class="text-end">Total Amount</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td class="ps-4 fw-bold font-monospace">
+                        <a href="{% url 'sales:detail' order.pk %}" class="text-decoration-none" style="color: var(--cm-primary);">
+                            {{ order.order_number }}
+                        </a>
+                    </td>
+                    <td class="text-muted small">
+                        {{ order.created_at|date:"M d, Y H:i" }}
+                    </td>
+                    <td>
+                        <span class="fw-semibold text-dark">{{ order.customer.name }}</span>
+                        <small class="text-muted d-block">{{ order.customer.get_customer_type_display }}</small>
+                    </td>
+                    <td>
+                        {% if order.store.store_type == 'PHYSICAL' %}
+                            <span class="cm-badge cm-badge-primary">
+                                <i class="bi bi-shop"></i> POS Counter
+                            </span>
+                        {% else %}
+                            <span class="cm-badge cm-badge-secondary">
+                                <i class="bi bi-globe"></i> Online Store
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <span class="cm-badge cm-badge-neutral">{{ order.items.count }} item{{ order.items.count|pluralize }}</span>
+                    </td>
+                    <td class="text-end fw-bold font-monospace fs-6">
+                        ${{ order.total_amount|floatformat:2 }}
+                    </td>
+                    <td class="text-center">
+                        {% if order.order_status == 'DELIVERED' %}
+                            <span class="cm-badge cm-badge-success">Delivered</span>
+                        {% elif order.order_status == 'CONFIRMED' %}
+                            <span class="cm-badge cm-badge-primary">Confirmed</span>
+                        {% elif order.order_status == 'PROCESSING' %}
+                            <span class="cm-badge cm-badge-secondary">Processing</span>
+                        {% elif order.order_status == 'SHIPPED' %}
+                            <span class="cm-badge cm-badge-warning">Shipped</span>
+                        {% elif order.order_status == 'CANCELLED' %}
+                            <span class="cm-badge cm-badge-danger">Cancelled</span>
+                        {% else %}
+                            <span class="cm-badge cm-badge-neutral">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end pe-4">
+                        <a href="{% url 'sales:detail' order.pk %}" class="btn btn-cm-secondary btn-cm-sm d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-muted">
+                        <i class="bi bi-receipt display-6 d-block mb-2 text-secondary"></i>
+                        No sales orders found matching your criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}
